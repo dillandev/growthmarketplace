@@ -1,0 +1,37 @@
+.review-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-card {
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.review-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.review-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.review-card__actions {
+  display: flex;
+  justify-content: flex-end;
+}

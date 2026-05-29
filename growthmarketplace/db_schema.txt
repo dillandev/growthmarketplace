@@ -1,0 +1,105 @@
+-- USERS
+users (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+username VARCHAR(30) UNIQUE NOT NULL,
+email VARCHAR(255) UNIQUE NOT NULL,
+password TEXT NOT NULL,
+role VARCHAR(10) NOT NULL, -- 'sharer' or 'provider'
+created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- SHARER PROFILE (MORE DATA)
+sharer_profiles (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+user_id UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+contact_method VARCHAR(30),
+contact_info VARCHAR(12),
+social_media_method VARCHAR(100),
+social_media_username VARCHAR(100),
+paypal_email VARCHAR(255),
+bio TEXT,
+profile_image TEXT,
+rating DECIMAL(3,2) DEFAULT 0,
+review_count INT DEFAULT 0
+);
+
+-- PROVIDER PROFILE (SIMPLER)
+provider_profiles (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+user_id UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+bio TEXT,
+profile_image TEXT,
+rating DECIMAL(3,2) DEFAULT 0,
+review_count INT DEFAULT 0
+);
+
+ads (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  sharer_id UUID REFERENCES users(id) ON DELETE CASCADE,
+
+  category VARCHAR(100),
+  hashtag VARCHAR(100),
+
+  description TEXT,
+  accepted_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+
+  CHECK (
+    (category IS NOT NULL AND hashtag IS NULL) OR
+    (category IS NULL AND hashtag IS NOT NULL)
+  )
+);
+
+-- CREDITS (SHARER ONLY)
+credits (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+user_id UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+amount INT DEFAULT 2,
+last_refill TIMESTAMP
+);
+
+-- BOOKINGS
+bookings (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+ad_id UUID REFERENCES ads(id) ON DELETE CASCADE,
+provider_id UUID REFERENCES users(id),
+sharer_id UUID REFERENCES users(id),
+status VARCHAR(10) NOT NULL CHECK(status IN ('pending', 'accepted', 'completed', 'cancelled'),
+created_at TIMESTAMP DEFAULT NOW()
+);
+
+
+-- REVIEWS (BOTH SIDES)
+reviews (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
+reviewer_id UUID REFERENCES users(id),
+reviewee_id UUID REFERENCES users(id),
+rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+comment TEXT,
+created_at TIMESTAMP DEFAULT NOW(),
+
+UNIQUE (booking_id, reviewer_id)
+
+CHECK (reviewer_id <> reviewee_id)
+);
+
+-- NOTIFICATIONS
+notifications (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+type VARCHAR(50),
+message TEXT,
+is_read BOOLEAN DEFAULT FALSE,
+created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- TIPS (PAYPAL FLOW)
+tips (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+provider_id UUID REFERENCES users(id),
+sharer_id UUID REFERENCES users(id),
+booking_id UUID REFERENCES bookings(id),
+paypal_email VARCHAR(255),
+created_at TIMESTAMP DEFAULT NOW()
+);
